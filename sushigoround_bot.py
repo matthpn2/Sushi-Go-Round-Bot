@@ -1,4 +1,9 @@
-import pyautogui, time, os, random, copy, sys
+import pyautogui
+import time
+import os
+import random
+import copy
+import sys
 
 # food order constraints
 ONIGIRI = "onigiri"
@@ -18,7 +23,7 @@ ALL_ORDER_CONSTRAINTS = {
                             "LEVEL_5": (ONIGIRI, GUNKAN_MAKI, CALIFORNIA_ROLL, SALMON_ROLL, SHRIMP_SUSHI, UNAGI_ROLL, DRAGON_ROLL),
                             "LEVEL_6": (ONIGIRI, GUNKAN_MAKI, CALIFORNIA_ROLL, SALMON_ROLL, SHRIMP_SUSHI, UNAGI_ROLL, DRAGON_ROLL, COMBO),
                             "LEVEL_7": (ONIGIRI, GUNKAN_MAKI, CALIFORNIA_ROLL, SALMON_ROLL, SHRIMP_SUSHI, UNAGI_ROLL, DRAGON_ROLL, COMBO)
-                        }
+}
 
 # ingredient constraints
 SHRIMP = "shrimp"
@@ -37,7 +42,7 @@ RECIPE = {
              UNAGI_ROLL:        {RICE: 1, NORI: 1, UNAGI: 2},
              DRAGON_ROLL:       {RICE: 2, NORI: 1, ROE: 1, UNAGI: 2},
              COMBO:             {RICE: 2, NORI: 1, ROE: 1, SALMON: 1, UNAGI: 1, SHRIMP: 1}
-         }
+}
 
 # game messages
 LEVEL_WIN_MESSAGE = "win"            # checkForGameOver() returns this value if the level has been won
@@ -59,7 +64,7 @@ INVENTORY = {
                 ROE:    10,
                 SALMON: 5,
                 UNAGI:  5
-            }
+}
 
 ORDERING_COMPLETE = {
                         SHRIMP: None,
@@ -68,7 +73,7 @@ ORDERING_COMPLETE = {
                         ROE:    None,
                         SALMON: None,
                         UNAGI:  None
-                    }               # unix timestamp of when an ordered ingredient will arrive
+}                                   # unix timestamp of when an ordered ingredient will arrive
 
 ROLLING_COMPLETE = 0                # unix timestamp of when mat rolling will complete
 LAST_PLATE_CLEARING = 0             # unix timestamp of last time plates were cleared
@@ -115,7 +120,7 @@ def getGameRegion():
     
     # locate the top-right corner by finding the (left, top, width, height) tuple of integer coordinates
     print("Finding the game region...")
-    region = pyautogui.locateOnScreen(imagePath("top_right_corner.png"), grayscale = True)
+    region = pyautogui.locateOnScreen(imagePath("top_right_corner.png"), grayscale=True)
     if region is None:
         raise Exception("Couldn't find the game on screen. Make sure it's visible.")
 
@@ -148,7 +153,7 @@ def setupCoordinates():
                         ROE:    (GAME_REGION[0] + 90, GAME_REGION[1] + 385),
                         SALMON: (GAME_REGION[0] + 35, GAME_REGION[1] + 425),
                         UNAGI:  (GAME_REGION[0] + 90, GAME_REGION[1] + 425)
-                    }
+    }
 
     PHONE_COORDS = (GAME_REGION[0] + 580, GAME_REGION[1] + 360)
     TOPPING_COORDS = (GAME_REGION[0] + 513, GAME_REGION[1] + 269)
@@ -159,7 +164,7 @@ def setupCoordinates():
                               NORI:     (GAME_REGION[0] + 490, GAME_REGION[1] + 278),
                               ROE:      (GAME_REGION[0] + 570, GAME_REGION[1] + 278),
                               SALMON:   (GAME_REGION[0] + 490, GAME_REGION[1] + 330)
-                          }
+    }
 
     RICE1_COORDS = (GAME_REGION[0] + 500, GAME_REGION[1] + 290)
     RICE2_COORDS = (GAME_REGION[0] + 538, GAME_REGION[1] + 281)
@@ -177,7 +182,7 @@ def navigateStartGameMenu():
     # click on the PLAY button
     print("Looking for the PLAY button...")
     while True:
-        position = pyautogui.locateCenterOnScreen(imagePath("play_button.png"), region = ENLARGED_REGION, grayscale = True)
+        position = pyautogui.locateCenterOnScreen(imagePath("play_button.png"), region=ENLARGED_REGION, grayscale=True)
         if position is not None:
             break
     pyautogui.click(position[0]/2, position[1]/2)
@@ -188,9 +193,9 @@ def navigateStartGameMenu():
 
     # click on the SKIP button
     print("Looking for the SKIP button...")
-    position = pyautogui.locateCenterOnScreen(imagePath("yellow_skip_button.png"), region = ENLARGED_REGION, grayscale = True)
+    position = pyautogui.locateCenterOnScreen(imagePath("yellow_skip_button.png"), region=ENLARGED_REGION, grayscale=True)
     if position is None:
-        position = pyautogui.locateCenterOnScreen(imagePath("red_skip_button.png"), region = ENLARGED_REGION, grayscale = True)
+        position = pyautogui.locateCenterOnScreen(imagePath("red_skip_button.png"), region=ENLARGED_REGION, grayscale=True)
     pyautogui.click(position[0]/2, position[1]/2)
     print("Clicked on the SKIP button.\n")
 
@@ -202,7 +207,7 @@ def pressContinueButton(continueButton):
         Performs the search and mouse clicks on the continue button.
     '''
     print("Looking for the CONTINUE button...")
-    position = pyautogui.locateCenterOnScreen(imagePath(continueButton), region = ENLARGED_REGION, grayscale = True)
+    position = pyautogui.locateCenterOnScreen(imagePath(continueButton), region=ENLARGED_REGION, grayscale=True)
     pyautogui.click(position[0]/2, position[1]/2)
     print("Clicked on the CONTINUE button.\n")
 
@@ -215,7 +220,7 @@ def getOrders(levelNumber):
     print("Getting customer orders...\n")
     orders = {}
     for orderType in ALL_ORDER_CONSTRAINTS[f"LEVEL_{levelNumber}"]:
-        allOrders = pyautogui.locateAllOnScreen(imagePath(f"{orderType}_order.png"), region = ((GAME_REGION[0] + 32)*2, (GAME_REGION[1] + 46)*2, 1120, 105))
+        allOrders = pyautogui.locateAllOnScreen(imagePath(f"{orderType}_order.png"), region=((GAME_REGION[0] + 32)*2, (GAME_REGION[1] + 46)*2, 1120, 105))
         for ao in allOrders:
             orders[ao] = orderType
     return orders
@@ -239,7 +244,6 @@ def getOrdersDifference(currentOrders, oldOrders):
     for ord in oldOrders:
         if ord not in currentOrders:
             removedOrders[ord] = oldOrders[ord]
-
     return addedOrders, removedOrders
 
 def makeOrder(orderType):
@@ -251,7 +255,7 @@ def makeOrder(orderType):
     global ROLLING_COMPLETE, INGRED_COORDS, INVENTORY
 
     # wait until the mat is clear, where mat is done rolling and there is room on the conveyor belt
-    while time.time() < ROLLING_COMPLETE and pyautogui.locateOnScreen(imagePath("clear_mat.png"), region = ((GAME_REGION[0] + 115)*2, (GAME_REGION[1] + 295)*2, 440, 350), grayscale = True) is None:
+    while time.time() < ROLLING_COMPLETE and pyautogui.locateOnScreen(imagePath("clear_mat.png"), region=((GAME_REGION[0] + 115)*2, (GAME_REGION[1] + 295)*2, 440, 350), grayscale = True) is None:
         time.sleep(0.1)
 
     # check that all the necessary ingredients are available in the inventory, otherwise return a list of ingredient constants
@@ -294,7 +298,7 @@ def orderIngredient(ingredients):
             pyautogui.click(RICE1_COORDS)
 
             # check to see if we can't afford the rice
-            if pyautogui.locateOnScreen(imagePath("cant_afford_rice.png"), region = ((GAME_REGION[0] + 498)*2, (GAME_REGION[1] + 242)*2, 180, 150)):
+            if pyautogui.locateOnScreen(imagePath("cant_afford_rice.png"), region=((GAME_REGION[0] + 498)*2, (GAME_REGION[1] + 242)*2, 180, 150)):
                 print("Can't afford rice, cancelling order.")
                 # click on the CANCEL PHONE and try ordering the remaining needed ingredients
                 pyautogui.click(GAME_REGION[0] + 585, GAME_REGION[1] + 335)
@@ -318,7 +322,7 @@ def orderIngredient(ingredients):
             pyautogui.click(TOPPING_COORDS)
 
             # check to see if we can't afford the non-rice ingredient
-            if pyautogui.locateOnScreen(imagePath(f"cant_afford_{ingredient}.png"), region = ((GAME_REGION[0] + 446)*2, (GAME_REGION[1] + 187)*2, 360, 360)):
+            if pyautogui.locateOnScreen(imagePath(f"cant_afford_{ingredient}.png"), region=((GAME_REGION[0] + 446)*2, (GAME_REGION[1] + 187)*2, 360, 360)):
                 print(f"Can't afford {ingredient}, cancelling order.")
                 # click on CANCEL PHONE and try ordering the remaining needed ingredients
                 pyautogui.click(GAME_REGION[0] + 597, GAME_REGION[1] + 337)
@@ -357,7 +361,6 @@ def updateInventory():
                 INVENTORY[ingredient] += 5
             elif ingredient in (NORI, ROE, RICE):
                 INVENTORY[ingredient] += 10
-
             print(f"Updated inventory with added {ingredient}.")
     print(f"Current inventory stock: {INVENTORY}")
 
@@ -380,14 +383,14 @@ def checkGameOver():
         LEVEL_FAIL_MESSAGE. Otherwise, if the level has been beaten, click on the "You Win" window and return LEVEL_WIN_MESSAGE.
     '''
     # check for "YOU WIN" message
-    message = pyautogui.locateOnScreen(imagePath("you_win.png"), region = ((GAME_REGION[0] + 188)*2, (GAME_REGION[1] + 94)*2, 524, 120))
+    message = pyautogui.locateOnScreen(imagePath("you_win.png"), region=((GAME_REGION[0] + 188)*2, (GAME_REGION[1] + 94)*2, 524, 120))
     if message is not None:
         pyautogui.click(pyautogui.center(message)[0]/2, pyautogui.center(message)[1]/2)
         print("Move on to next level.\n")
         return LEVEL_WIN_MESSAGE
 
     # check for "YOU FAIL" message
-    message = pyautogui.locateOnScreen(imagePath("sorry_you_failed.png"), region = ((GAME_REGION[0] + 188)*2, (GAME_REGION[1] + 94)*2, 524, 120))
+    message = pyautogui.locateOnScreen(imagePath("sorry_you_failed.png"), region=((GAME_REGION[0] + 188)*2, (GAME_REGION[1] + 94)*2, 524, 120))
     if message is not None:
         pyautogui.click(pyautogui.center(message)[0]/2, pyautogui.center(message)[1]/2)
         print("Level has failed. Trying again.\n")
@@ -421,7 +424,8 @@ def startServing():
                             ROE:    None,
                             SALMON: None,
                             UNAGI:  None
-                        }
+    }
+
     while True:
         # checking if the game has been lost or if level has been won yet once every 12 iterations
         if time.time() - 12 > LAST_GAME_OVER_CHECK:
@@ -437,7 +441,7 @@ def startServing():
                                 ROE: 10,
                                 SALMON: 5,
                                 UNAGI: 5
-                            }
+                }
 
                 ORDERING_COMPLETE = {
                                         SHRIMP: None,
@@ -446,7 +450,7 @@ def startServing():
                                         ROE: None,
                                         SALMON: None,
                                         UNAGI: None
-                                    }
+                }
 
                 backOrders = {}
                 remakeOrders = {}
@@ -459,15 +463,13 @@ def startServing():
                 time.sleep(7)
 
                 # end the program if the game has been won
-                if LEVEL == 8:
-                    sys.exit()
+                if LEVEL == 8: sys.exit()
 
                 # click buttons to continue to next level
                 pressContinueButton("continue_button.png")
 
                 # click on second continue button if game isn't finished yet
-                if LEVEL <= 7:
-                    pressContinueButton("continue_arrow.png")
+                if LEVEL <= 7: pressContinueButton("continue_arrow.png")
             
             # if level has been loss
             elif result == LEVEL_FAIL_MESSAGE:
@@ -479,7 +481,7 @@ def startServing():
                                 ROE: 10,
                                 SALMON: 5,
                                 UNAGI: 5
-                            }
+                }
 
                 ORDERING_COMPLETE = {
                                         SHRIMP: None,
@@ -488,7 +490,7 @@ def startServing():
                                         ROE: None,
                                         SALMON: None,
                                         UNAGI: None
-                                    }
+                }
 
                 backOrders = {}
                 remakeOrders = {}
@@ -503,7 +505,7 @@ def startServing():
                 pressContinueButton("partial_continue_button.png")
 
                 print("Looking for the YES button...")
-                position = pyautogui.locateCenterOnScreen(imagePath("yes_button.png"), region = ENLARGED_REGION)
+                position = pyautogui.locateCenterOnScreen(imagePath("yes_button.png"), region=ENLARGED_REGION)
                 pyautogui.click(position[0]/2, position[1]/2)
                 print("Clicked on the YES button.\n")
 
@@ -589,7 +591,6 @@ def startServing():
             for ingredient, amount in INVENTORY.items():
                 if amount < MIN_INGREDIENTS:
                     orderIngredient([ingredient])
-
         oldOrders = currentOrders
 
 if __name__ == "__main__":
